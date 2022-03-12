@@ -1,7 +1,7 @@
 import numpy as np
 import pyunit_prime as pp
 import random
-
+import DataStructure
 
 def Cutting(x: int, dt, s):
     # x is the input ; dt:basic datatype ;s byte len of dt
@@ -28,3 +28,19 @@ def GenerateIPHash(w, range1=51, range2=100):
         return (a * x + b) % p
 
     return hash_func, p
+
+
+def DBLPDataProcessor(path):
+    f = open(path, 'r')
+    print('get DBLP data stream')
+    graph_stream = []  # 调度核心中存储的总图流
+    l_stream = 0
+    for e in f:
+        e = e.split(';')
+        tmp = e[1]
+        v = (e[0].split(',')[0], e[0].split(',')[1])
+        cell = DataStructure.InfoCell(v[0], v[1], 1, tmp)
+        graph_stream.append(cell)
+        l_stream += 1
+    f.close()
+    return graph_stream, l_stream
