@@ -8,7 +8,7 @@ import time
 # Super Parameter：dt，w
 class Attribute_Core:
     def __init__(self, stream_path, dt, w, n=1):
-        # 首先初始化函数堆，然后将图流导入
+        # initialize the hash functions and them import the graph stream
         print('initialing...')
         self.hash_stack = []
         for i in range(n):
@@ -26,11 +26,72 @@ class Attribute_Core:
             self.TCM.append(DataStructure.PyramidSketch(i, self.hash_stack[i], self.graph_stream, self.dt))
         for ske in self.TCM:
             ske.start()
+        for ske in self.TCM:
             ske.join()
             ske.print_M()
 
 
-DataPath = '/Users/cherudim/Desktop/DBLP/DBLPdata/1424953.txt'
+class OperatingSystem:
+    def __init__(self):
+        self.op = -1
+        print("choose super_para:")
+        stream_path, dt, w, n = self.initial_choose()
+        self.core = Attribute_Core(stream_path, dt, w, n)
+        op_dic = {
+            "end": self.shut_system,
+            "generate MPTCM": self.core.generating_sketch
+        }
+        while self.op != "end":
+            self.op = input("input the operation code\n")
+            op_dic[self.op]()
 
-Core = Attribute_Core(DataPath, np.uint8, 70)
-Core.generating_sketch()
+    def shut_system(self):
+        print("System Closed")
+        self.op = "end"
+        return 0
+
+    def initial_choose(self):
+        path_dic = {
+            "1": '/Users/cherudim/Desktop/DBLP/DBLPdata/1424953.txt'
+        }
+        dt_dic = {
+            "1": np.uint8
+        }
+        w_dic = {
+            "1": 70
+        }
+        state = 1
+        while state:
+            try:
+                stream_path = path_dic[input(path_dic)]
+                break
+            except:
+                continue
+        while state:
+            try:
+                dt = dt_dic[input(dt_dic)]
+                break
+            except:
+                continue
+        while state:
+            try:
+                w = w_dic[input(w_dic)]
+                break
+            except:
+                continue
+        while state:
+            try:
+                n = int(input("number of pyramid"))
+                break
+            except:
+                continue
+        return stream_path, dt, w, n
+
+
+op = OperatingSystem()
+
+# switch = {"valueA":functionA,"valueB":functionB,"valueC":functionC}
+# try:
+# 　　switch["value"]() #执行相应的方法。
+# except KeyError as e:
+#       pass 或 functionX #执行default部分

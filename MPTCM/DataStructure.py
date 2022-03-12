@@ -158,7 +158,7 @@ class PyramidSketch(Thread):
         print('The first brick layer')
         for s in self.pyramid_proj:
             for r in s.bricks[0].values():
-                print(r.val,  end=" ")
+                print(r.val, end=" ")
             print(' ')
         # print('The Second brick layer')
         # for s in self.pyramid_proj:
