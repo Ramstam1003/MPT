@@ -18,4 +18,15 @@ def test():
     dt = np.dtype(np.int8)
     a = np.array([257], dtype=dt)
     print(a)
-test()
+
+def Cutting(x:int, dt:np.dtype, s):
+    conse = []
+    flag = 1
+    z = dt(1 * pow(2,s) - 1) # 255
+
+    while x != 0:
+        t = dt(np.bitwise_and(z,x))
+        conse.append(t)
+        x = np.right_shift(x, s)
+    return conse
+

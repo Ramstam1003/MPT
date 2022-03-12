@@ -2,11 +2,24 @@ from threading import Thread
 import numpy as np
 
 
+def Cutting(x:int, dt:np.dtype, s):
+    # x input dt:basic datatype s byte len of dt
+    conse = []
+    z = dt(1 * pow(2,s) - 1) # 255
+    while x != 0:
+        t = dt(np.bitwise_and(z,x))
+        conse.append(t)
+        x = dt(np.right_shift(x, s))
+    return conse
+
+
 class BasicInfoCell:
-    def __init__(self, from_index, to_index, weight, time):
-        self.edge = (from_index, to_index)
-        self.weight = weight
-        self.time = time
+    def __init__(self, from_index, to_index, weight, time, dt:np.dtype, s):
+        x = Cutting(from_index, dt, s)
+        y = Cutting(to_index, dt, s)
+        self.edge = (x, y)
+        self.weight = Cutting(weight, dt, s)
+        self.time = Cutting(time, dt, s)
 
     def get_edge(self):
         return self.edge
@@ -19,15 +32,14 @@ class BasicInfoCell:
 
 
 class GraphSketch(Thread):
-    # 每个摘要图的初始化只需要分到哈希函数即可，这个哈希函数从此和这个摘要图绑定，避免后续出现重复的摘要图,哈希函数以tuple(hfunc,w)传入
-    def __init__(self, sketch_id, hfunc_pair, stream):
+    # hash func in the form of a tuple (hfunc,w)
+    def __init__(self, sketch_id, hfunc_pair, stream, dt):
         Thread.__init__(self)
         self.id = sketch_id
         self.hfunc = hfunc_pair[0]
         self.w = hfunc_pair[1]
         self.stream = stream
-        self.matrix = np.zeros((self.w, self.w), dtype=np.uint8)
-        print(self.matrix.dtype)
+        self.matrix = np.zeros((self.w, self.w), dtype=dt)
 
     def insert_edge(self, edge: BasicInfoCell):
         # 插入一条边，边为一个元组（from,to;time,val）
