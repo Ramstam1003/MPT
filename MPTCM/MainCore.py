@@ -28,6 +28,9 @@ class Attribute_Core:
             ske.start()
         for ske in self.TCM:
             ske.join()
+
+    def print_all(self):
+        for ske in self.TCM:
             ske.print_M()
 
 
@@ -39,7 +42,8 @@ class OperatingSystem:
         self.core = Attribute_Core(stream_path, dt, w, n)
         op_dic = {
             "end": self.shut_system,
-            "generate MPTCM": self.core.generating_sketch
+            "start": self.core.generating_sketch,
+            "print":self.core.print_all
         }
         while self.op != "end":
             self.op = input("input the operation code\n")
