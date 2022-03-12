@@ -46,10 +46,8 @@ class GraphSketch(Thread):
         pair = edge.get_edge()
         x = self.hfunc(int(pair[0]))
         y = self.hfunc(int(pair[1]))
-        # TODO 这里有一个问题 如何存储时间,或许可以给每条边编号然后用bidict存，但是这样没有对于时间特性做出处理，后续考虑优化
         val = edge.get_weight()
         # 权重得保证不会溢出才行
-        # TODO 这里不能用简单的＋，需要判断是否有溢出，用一个带有异常接受机制的plus函数来代替加法
         t = self.matrix[x][y]
         x = np.uint8(t + val)
 

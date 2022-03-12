@@ -45,15 +45,38 @@ class PyramidSlice:
         # Step 0:if the Slice now have the enough height,initialize a new brick and add it to the right height-dict with
         # it`s index.
         # Step 1:if the Slice now don`t have enough height,add a new dict and the height,then go Step 0.
+        # Step 2:Every new brick must link to the parent and child already exist!
         # return the pointer to the new brick.
         if dep > self.height:
             self.bricks.append({})
             self.height = self.height + 1
         b = brick(self.dt, index, dep)
         self.bricks[dep].update({index: b})
+        try:
+            # check if the parent exist
+            p = self.bricks[dep][int(index / 2)]
+        except:
+            return b
+        else:
+            b.parent = p
+        try:
+            # check if childs exist
+            lc = self.bricks[dep - 1][index * 2]
+        except:
+            return b
+        else:
+            lc.parent = b
+        try:
+            # check if childs exist
+            rc = self.bricks[dep - 1][index * 2 + 1]
+        except:
+            return b
+        else:
+            rc.parent = b
+
         return b
 
-    def carry_over(self, x, dep):
+    def carry_over_base(self, x, dep):
         # the x is the position index of pre-layer,the dep is also the pre-layer`s depth
         # this function use to encounter the situation that some layer happens Overflow.
         # Step 0:Find the mapped brick in the next layer,calculate the plus and turn the flag situation by the odd/even
@@ -71,20 +94,68 @@ class PyramidSlice:
         t = self.dt(t + 1)
         if t < b.val:
             if b.parent:
-                self.carry_over(int(x / 2), dep + 1)
+                self.carry_over_brick(b.parent)
             else:
                 p = self.create_brick(dep + 1, int(b.id / 2))
-                p.val = self.dt(1)
+                p.val = self.dt(1)  # TODO default that carry over will only plus 1!
                 if b.id % 2:
                     p.Rflag = 1
-                    if self.bricks[dep][int(x / 2)-1]:
-                        self.bricks[dep][int(x / 2) - 1].parent = p
+                    # if self.bricks[dep][int(x / 2)-1]:
+                    #     self.bricks[dep][int(x / 2) - 1].parent = p
                 else:
                     p.Lflag = 1
-                    if self.bricks[dep][int(x/2)+1]:
-                        self.bricks[dep][int(x / 2) + 1].parent = p
+                    # if self.bricks[dep][int(x/2)+1]:
+                    #     self.bricks[dep][int(x / 2) + 1].parent = p
                 b.parent = p
         b.val = t
+
+    def carry_over_brick(self, b: brick):
+        # Step 0: the position is exact.Calculate whether there is a carry over
+        # Step 1: if no carry over happens,add the val and stop
+        # Step 2: if carry over happens,judge if there is a parent,if not,create one and add val,else plus val directly.
+        old_val = b.val
+        b.val = self.dt(old_val + 1)
+        dep = b.dep
+        if b.val < old_val:
+            if b.parent:
+                self.carry_over_brick(b.parent)
+            else:
+                p = self.create_brick(dep + 1, int(b.id / 2))
+                if b.id % 2:
+                    p.Rflag = 1
+                    # if self.bricks[dep][int(x / 2)-1]:
+                    #     self.bricks[dep][int(x / 2) - 1].parent = p
+                else:
+                    p.Lflag = 1
+                    # if self.bricks[dep][int(x/2)+1]:
+                    #     self.bricks[dep][int(x / 2) + 1].parent = p
+
+    def step_back_base(self, x, dep):
+        # the x is the position index of pre-layer,the dep is also the pre-layer`s depth
+        # this function use to encounter the situation that base layer happens step_back and need to
+        # subtrack the first brick layer.
+        # Step 0:we location the brick is by calculate index
+        # Step 1:calculate the val of the brick,if steps back as well,find parent by link
+        # Step 2:step_back_brick(parent)
+        b = self.bricks[dep][int(x / 2)]
+        old_val = b.val
+        b.val = old_val - self.dt(1)
+        if b.val > old_val:
+            # means need stepback
+            try:
+                self.step_back_brick(b.parent)
+            except:
+                print("Error:no parent to step back")
+
+    def step_back_brick(self, b: brick):
+        old_val = b.val
+        b.val = old_val - self.dt(1)
+        if b.val > old_val:
+            # means need stepback
+            try:
+                self.step_back_brick(b.parent)
+            except:
+                print("Error:no parent to step back")
 
 
 class PyramidSketch(Thread):
@@ -119,7 +190,7 @@ class PyramidSketch(Thread):
         x, y = int(edge[0]), int(edge[1])
         val = self.dt(cell.get_weight())
         # TODO we recommend to process the weight to non-overflow state in the dataset rather than doing it in the
-        #  system,in the actual situation it almost never happens
+        #  system,in the actual situation it almost never happens, it could be solved by the help of function cutting
         # TODO Thinking about using a time manage module to map time and edge
         # Step 0 :find the hashed position in the Base, e.g M[x][y]
         # Step 1 :let them plu,if outflow, let the outflow part go to the n-layer part
@@ -129,14 +200,25 @@ class PyramidSketch(Thread):
         res = old_val + val
         if res < old_val:
             # print('Overflow in base')
-            self.pyramid_proj[y].carry_over(x, 0)  # 此x为base中的x坐标
+            self.pyramid_proj[y].carry_over_base(x, 0)  # 此x为base中的x坐标
         self.base_layer[x][y] = res
 
         # end
 
     def delete_edge(self, delete_cell: InfoCell):
         # TODO how to delete a edge
-        return 0
+        edge = delete_cell.get_edge()
+        x, y = int(edge[0]), int(edge[1])
+        val = self.dt(delete_cell.get_weight())
+        # Step 0:find the hashed position in the Base layer,e.g M[x][y]
+        # Step 1:let it subtract,if step_back,put the right val to M and use func step_back to let it run in the n-layer
+        x = self.hfunc(x)
+        y = self.hfunc(y)
+        old_val = self.base_layer[x][y]
+        res = old_val - val
+        if res > old_val:
+            self.pyramid_proj[y].step_back_base(x, 0)
+        self.base_layer[x][y] = res
 
     def query(self):
         # TODO how to make a query of an vertex or an edge

@@ -28,10 +28,26 @@ class Attribute_Core:
             ske.start()
         for ske in self.TCM:
             ske.join()
+        print("finish generating sketch")
 
     def print_all(self):
+        print("Now print the image")
         for ske in self.TCM:
             ske.print_M()
+
+    def func_on_TCM(self):
+        code = input("please input the modify_code:\n")
+        code_dic = {
+            "insert": DataStructure.PyramidSketch.insert_edge,
+            "delete": DataStructure.PyramidSketch.delete_edge
+        }
+        x = input("x")
+        y = input("y")
+        val = input("weight")
+        t = input("time")
+        cell = DataStructure.InfoCell(x, y, val, t)
+        for ske in self.TCM:
+            code_dic[code](ske, cell)
 
 
 class OperatingSystem:
@@ -43,7 +59,8 @@ class OperatingSystem:
         op_dic = {
             "end": self.shut_system,
             "start": self.core.generating_sketch,
-            "print":self.core.print_all
+            "print": self.core.print_all,
+            "modify": self.core.func_on_TCM,
         }
         while self.op != "end":
             self.op = input("input the operation code\n")
@@ -54,9 +71,11 @@ class OperatingSystem:
         self.op = "end"
         return 0
 
-    def initial_choose(self):
+    @staticmethod
+    def initial_choose():
         path_dic = {
-            "1": '/Users/cherudim/Desktop/DBLP/DBLPdata/1424953.txt'
+            "1": '/Users/cherudim/Desktop/DBLP/DBLPdata/1424953.txt',
+            "0": '/Users/cherudim/Desktop/DBLP/DBLPdata/blank.txt'
         }
         dt_dic = {
             "1": np.uint8
@@ -64,6 +83,7 @@ class OperatingSystem:
         w_dic = {
             "1": 70
         }
+        stream_path, dt, w, n = 1, 1, 1, 1
         state = 1
         while state:
             try:
@@ -92,10 +112,6 @@ class OperatingSystem:
         return stream_path, dt, w, n
 
 
-op = OperatingSystem()
 
-# switch = {"valueA":functionA,"valueB":functionB,"valueC":functionC}
-# try:
-# 　　switch["value"]() #执行相应的方法。
-# except KeyError as e:
-#       pass 或 functionX #执行default部分
+
+op = OperatingSystem()

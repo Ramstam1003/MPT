@@ -34,18 +34,6 @@ def Cutting(x:int, dt:np.dtype, s):
 def shutdown(a):
     print("shutdown",a)
 
-def start(a):
-    print("start",a)
-# switch = {"valueA":functionA,"valueB":functionB,"valueC":functionC}
-# try:
-#　　switch["value"]() #执行相应的方法。
-# except KeyError as e:
-#       pass 或 functionX #执行default部分
-
-op_dic = {
-    "end" : shutdown,
-    "start":start
-}
-
-op = input()
-op_dic[op](10)
+i = np.uint8(0)
+i = i - np.uint8(5)
+print(i, type(i))
