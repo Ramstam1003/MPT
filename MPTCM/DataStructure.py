@@ -23,7 +23,7 @@ class brick:
     # the brick is a tree node,an array of bricks is a layer,several layers come to be a Slice and a pyramid is
     # consists of layers,pyramid projects in the y-axis is several slices.
     def __init__(self, dt, i, dep):
-        self.parent = None
+        self.parent = -1
         self.val = dt(0)
         self.Lflag = 0
         self.Rflag = 0
@@ -54,7 +54,7 @@ class PyramidSlice:
         self.bricks[dep].update({index: b})
         try:
             # check if the parent exist
-            p = self.bricks[dep][int(index / 2)]
+            p = self.bricks[dep+1][int(index / 2)]
         except:
             return b
         else:
@@ -220,9 +220,29 @@ class PyramidSketch(Thread):
             self.pyramid_proj[y].step_back_base(x, 0)
         self.base_layer[x][y] = res
 
-    def query(self):
-        # TODO how to make a query of an vertex or an edge
-        return 0
+    def query_edge_base(self, edge):
+        # use to query the weight of an edge
+        x = self.hfunc(int(edge[0]))
+        y = self.hfunc(int(edge[1]))
+        val = [self.base_layer[x][y]]
+        b_first = self.pyramid_proj[y].bricks[0][int(x/2)]
+        self.query_edge_brick(b_first, val, 0)
+        print(val)
+        return val
+
+    def query_edge_brick(self, b, val, h):
+        print(b)
+        if type(b) == int:
+            return 0
+        if b.parent:
+            print(b.dep, b, b.parent)
+            val.append(b.val)
+            self.query_edge_brick(b.parent, val, h+1)
+        else:
+            val.append(b.val)
+            return 0
+
+
 
     def run(self):
         # Inheritance from threading.Thread

@@ -49,6 +49,18 @@ class Attribute_Core:
         for ske in self.TCM:
             code_dic[code](ske, cell)
 
+    def search_on_TCM(self):
+        code_dic = {
+            "edge": DataStructure.PyramidSketch.query_edge_base
+        }
+        x = input("x")
+        y = input("y")
+        code = input("please input the search_code:\n")
+        val_list = []
+        for ske in self.TCM:
+            val_list.append(code_dic[code](ske, (x, y)))
+        print(val_list)
+
 
 class OperatingSystem:
     def __init__(self):
@@ -61,6 +73,7 @@ class OperatingSystem:
             "start": self.core.generating_sketch,
             "print": self.core.print_all,
             "modify": self.core.func_on_TCM,
+            "query": self.core.search_on_TCM
         }
         while self.op != "end":
             self.op = input("input the operation code\n")
@@ -78,9 +91,10 @@ class OperatingSystem:
             "0": '/Users/cherudim/Desktop/DBLP/DBLPdata/blank.txt'
         }
         dt_dic = {
-            "1": np.uint8
+            "0": np.uint8
         }
         w_dic = {
+            "0": 10,
             "1": 70
         }
         stream_path, dt, w, n = 1, 1, 1, 1
