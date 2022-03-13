@@ -7,7 +7,7 @@ import time
 
 # Super Parameter：dt，w
 class Attribute_Core:
-    def __init__(self, stream_path, dt, w, n=1):
+    def __init__(self, stream_path, dt, s, w, n=1):
         # initialize the hash functions and them import the graph stream
         print('initialing...')
         self.hash_stack = []
@@ -16,6 +16,7 @@ class Attribute_Core:
         print('get hash functions')
         self.TCM = []
         self.dt = dt
+        self.s = s
         self.graph_stream, l_stream = Tools.DBLPDataProcessor(stream_path)
         self.sketch_counter = n
         print("Process Core initialization finish, len of stream:", l_stream)
@@ -23,7 +24,7 @@ class Attribute_Core:
     def generating_sketch(self):
         print("start generating sketches")
         for i in range(self.sketch_counter):
-            self.TCM.append(DataStructure.PyramidSketch(i, self.hash_stack[i], self.graph_stream, self.dt))
+            self.TCM.append(DataStructure.PyramidSketch(i, self.hash_stack[i], self.graph_stream, self.dt, self.s))
         for ske in self.TCM:
             ske.start()
         for ske in self.TCM:
@@ -53,21 +54,26 @@ class Attribute_Core:
         code_dic = {
             "edge": DataStructure.PyramidSketch.query_edge_base
         }
+        code = input("please input the search_code:\n")
         x = input("x")
         y = input("y")
-        code = input("please input the search_code:\n")
         val_list = []
         for ske in self.TCM:
-            val_list.append(code_dic[code](ske, (x, y)))
-        print(val_list)
+            x = ske.hfunc(int(x))
+            y = ske.hfunc(int(y))
+            val = code_dic[code](ske, (x, y))
+            print(ske.id, val)
+            val_list.append(val)
+            # use min as the T_function
+        print(val_list, min(val_list))
 
 
 class OperatingSystem:
     def __init__(self):
         self.op = -1
-        print("choose super_para:")
-        stream_path, dt, w, n = self.initial_choose()
-        self.core = Attribute_Core(stream_path, dt, w, n)
+        print("*****choose super_para:*****")
+        stream_path, dt,s, w, n = self.initial_choose()
+        self.core = Attribute_Core(stream_path, dt,s, w, n)
         op_dic = {
             "end": self.shut_system,
             "start": self.core.generating_sketch,
@@ -76,7 +82,7 @@ class OperatingSystem:
             "query": self.core.search_on_TCM
         }
         while self.op != "end":
-            self.op = input("input the operation code\n")
+            self.op = input("*****input the operation code*****\n")
             op_dic[self.op]()
 
     def shut_system(self):
@@ -93,8 +99,11 @@ class OperatingSystem:
         dt_dic = {
             "0": np.uint8
         }
+        s_dic = {
+            "0": 8
+        }
         w_dic = {
-            "0": 10,
+            "0": 300,
             "1": 70
         }
         stream_path, dt, w, n = 1, 1, 1, 1
@@ -107,7 +116,9 @@ class OperatingSystem:
                 continue
         while state:
             try:
-                dt = dt_dic[input(dt_dic)]
+                dt_index = input(dt_dic)
+                dt = dt_dic[dt_index]
+
                 break
             except:
                 continue
@@ -123,7 +134,8 @@ class OperatingSystem:
                 break
             except:
                 continue
-        return stream_path, dt, w, n
+        s = s_dic[dt_index]
+        return stream_path, dt, s, w, n
 
 
 

@@ -1,6 +1,6 @@
 import numpy as np
 from threading import Thread
-
+import Tools
 
 class InfoCell:
     # InfoCell is the basic structure of a flow in GraphStream
@@ -93,7 +93,7 @@ class PyramidSlice:
             b.Lflag = 1
         t = self.dt(t + 1)
         if t < b.val:
-            if b.parent:
+            if type(b.parent) == brick:
                 self.carry_over_brick(b.parent)
             else:
                 p = self.create_brick(dep + 1, int(b.id / 2))
@@ -117,7 +117,7 @@ class PyramidSlice:
         b.val = self.dt(old_val + 1)
         dep = b.dep
         if b.val < old_val:
-            if b.parent:
+            if b.parent !=-1:
                 self.carry_over_brick(b.parent)
             else:
                 p = self.create_brick(dep + 1, int(b.id / 2))
@@ -159,7 +159,7 @@ class PyramidSlice:
 
 
 class PyramidSketch(Thread):
-    def __init__(self, sketch_id, hfunc_pair, stream, dt):
+    def __init__(self, sketch_id, hfunc_pair, stream, dt, s):
         # sketch_id is the index of the sketch.
         # hfunc_pair is the (hfunc,w) tuple
         # stream is the graph stream,a list of Infocell
@@ -170,6 +170,7 @@ class PyramidSketch(Thread):
         self.gs = stream
         self.dt = dt
         self.base_layer = np.zeros((hfunc_pair[1], hfunc_pair[1]), dtype=dt)
+        self.s = s
         print("A Pyramid base has been initialized,No.", self.id)
         # At first we initialize the base-layer and the first-layer.
         self.pyramid_proj = []
@@ -227,15 +228,12 @@ class PyramidSketch(Thread):
         val = [self.base_layer[x][y]]
         b_first = self.pyramid_proj[y].bricks[0][int(x/2)]
         self.query_edge_brick(b_first, val, 0)
-        print(val)
-        return val
+        return Tools.Fusing(val, self.s)
 
     def query_edge_brick(self, b, val, h):
-        print(b)
         if type(b) == int:
             return 0
         if b.parent:
-            print(b.dep, b, b.parent)
             val.append(b.val)
             self.query_edge_brick(b.parent, val, h+1)
         else:

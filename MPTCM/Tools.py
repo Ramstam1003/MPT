@@ -3,6 +3,7 @@ import pyunit_prime as pp
 import random
 import DataStructure
 
+
 def Cutting(x: int, dt, s):
     # x is the input ; dt:basic datatype ;s byte len of dt
     # this function can cut x in a series number in the format of dt,and put them in a list to return
@@ -15,6 +16,18 @@ def Cutting(x: int, dt, s):
     return result
 
 
+def Fusing(l, s):
+    # this function is the reverse of function:Cutting,it can put the datalist
+    # with type of dt back to py.int and return it
+    z =  1# 255 when dt==uint8
+    f = 1 * pow(2, s)
+    val = 0
+    for i in range(len(l)):
+        val += z * l[i]
+        z = z * f
+    return val
+
+
 def GenerateIPHash(w, range1=51, range2=100):
     # generate pairwise independent hash function,using the prime number
     # ax + b mod p, a,b,p are all prime numbers,p nears w,a in [range1+1,range2], b in [1,range1]
@@ -23,10 +36,10 @@ def GenerateIPHash(w, range1=51, range2=100):
     b = random.randint(1, range1)
     pl = pp.prime_range(w - 20, w + 20)
     p = pl[int(len(pl) / 2)]
-
+    print(a, b, p)
     def hash_func(x):
-        return (a * x + b) % p
 
+        return (a * x + b) % p
     return hash_func, p
 
 
@@ -36,6 +49,8 @@ def DBLPDataProcessor(path):
     graph_stream = []  # 调度核心中存储的总图流
     l_stream = 0
     for e in f:
+        if e == "\n":
+            continue
         e = e.split(';')
         tmp = e[1]
         v = (e[0].split(',')[0], e[0].split(',')[1])
